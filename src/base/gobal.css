@@ -1,0 +1,5 @@
+@define-mixin flexbox {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

@@ -151,12 +151,9 @@ export default {
 </script>
 
 <style lang="postcss" module>
+@import "../base/gobal.css";
 ul,
 li {
-  margin-block-start: 0;
-  margin-block-end: 0;
-  margin-inline-start: 0px;
-  margin-inline-end: 0px;
   padding-inline-start: 0px;
   list-style: none;
 }
@@ -169,17 +166,13 @@ li {
   padding: 10px;
 }
 .svgContain {
-  display: flex;
+  @mixin flexbox;
   position: relative;
-  justify-content: center;
-  align-items: center;
-  width: 210px;
   flex-wrap: wrap;
+  width: 210px;
 }
 .wrap {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  @mixin flexbox;
   flex-direction: column;
 }
 .start {
@@ -188,14 +181,12 @@ li {
   padding: 10px;
 }
 .start > div {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @mixin flexbox;
   width: 50px;
   height: 50px;
   border-radius: 100%;
-  font-size: 16px;
   border: 1px solid #af8f6f;
+  font-size: 16px;
 }
 .icon {
   width: 50px;

@@ -122,11 +122,11 @@ $min-height: 40px;
   overflow: hidden;
 }
 .iconaction {
-  width: 4rem;
-  height: 4rem;
   display: flex;
   justify-content: center;
   align-items: center;
+  width: 4rem;
+  height: 4rem;
   animation: myRotate 0.5s linear infinite;
 }
 @keyframes myRotate {
