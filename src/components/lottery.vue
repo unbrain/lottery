@@ -40,7 +40,7 @@ export default {
     },
     speed: {
       type: Number,
-      default: 100
+      default: 50
     },
     direction: {
       type: Boolean,
@@ -63,10 +63,22 @@ export default {
       start: false, // 图标切换
       timer1: '',
       currentIndex: 0,
-      stopIndex: 99,
+      stopIndex: 0,
       currentSpeed: 0,
       order: [0, 1, 2, 5, 8, 7, 6, 3],
-      count: 1 // 抽奖次数
+      count: 1, // 抽奖次数
+      turnsNum: 0, // 圈数
+    }
+  },
+  watch: {
+    turnsNum(newValue) {
+      if (newValue === 5) {
+        clearInterval(this.timer1);
+        this.timer1 = this.playDetails(this.currentSpeed * 2);
+      } else if (newValue === 6) {
+        clearInterval(this.timer1);
+        this.timer1 = this.playDetails(this.currentSpeed * 6, true);
+      }
     }
   },
   methods: {
@@ -74,20 +86,10 @@ export default {
       if (this.count) {
         this.getStopNum();
         this.start = true;
-        this.timer1 = this.playDetails(this.currentSpeed)
+        this.timer1 = this.playDetails(this.currentSpeed);
       } else {
-        alert('没有机会啦！！！')
+        this.$toast('没有机会啦！！！', { svg: '#icon-waring' });
       }
-    },
-    stop(num) {
-      setTimeout(() => {
-        clearInterval(this.timer1);
-        this.timer1 = this.playDetails(this.currentSpeed * 2);
-      }, 2000);
-      setTimeout(() => {
-        clearInterval(this.timer1);
-        this.timer1 = this.playDetails(this.currentSpeed * 4, true);
-      }, 2000);
     },
     /**
      * speed 速度
@@ -96,30 +98,38 @@ export default {
      */
     playDetails(speed, stop = false) {
       return setInterval(() => {
+        if (this.currentIndex === 0) {
+          this.turnsNum++;// 计算圈数
+        }
         let last = (this.currentIndex === 0) ? this.order[7] : this.order[this.currentIndex - 1];
         this.svgIcons[last].active = false;
         this.svgIcons[this.order[this.currentIndex]].active = true;
         // 判断是否需要停止
         if (this.currentIndex === this.stopIndex && stop) {
-          clearInterval(this.timer1);
-          console.log(this.svgIcons[this.order[this.currentIndex]].url);
-          this.start = false;
+          this.stop()
+          this.count -= 1;
+          let award = (this.svgIcons[this.order[this.currentIndex]].url.match(/-(.+)/)[1]);
+          this.$toast('恭喜你获得了' + award, { svg: '#icon-gongxi', closeDelay: 4 });
         }
         this.currentIndex = (this.currentIndex < 7) ? this.currentIndex + 1 : 0;
       }, speed);
     },
     getStopNum() {
-      this.$axios.get('http://localhost:3000/getstopnum').then(res => {
+      return this.$axios.get('http://localhost:3000/getstopnum').then(res => {
         this.stopIndex = res.data.num;
-        this.count -= 1;
       }, () => {
-        alert('服务器繁忙，请稍后再来');
+        this.stop();
+        this.$toast('服务器繁忙，请稍后再来', { svg: '#icon-waring' });
       });
-    }
-  },
-  watch: {
-    stopIndex(newValue) {
-      this.stop(newValue)
+    },
+    /**
+     *  数据初始化
+    */
+    stop() {
+      clearInterval(this.timer1);
+      this.turnsNum = 0;
+      this.currentSpeed = this.speed;
+      this.start = false;
     }
   },
   created() {
@@ -127,8 +137,12 @@ export default {
     this.currentSpeed = this.speed;
     // 逆时针改变数组的的顺序
     if (!this.direction) {
-      this.order = this.order.slice(0, 1).concat(this.order.slice(1).reverse())
+      this.order = this.order.slice(0, 1).concat(this.order.slice(1).reverse());
     }
+    // 获取真实可抽奖次数
+    this.$axios.get('http://localhost:3000/getchangenum').then(res => {
+      this.count = res.data.num;
+    })
   },
   beforeDestroy() {
     clearInterval(this.timer1);

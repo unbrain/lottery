@@ -6,7 +6,7 @@ function setRem() {
   const scale = document.documentElement.clientWidth / 375;
 
   // 设置页面根节点字体大小 2.731 <-- 1024/375
-  document.documentElement.style.fontSize = baseSize * Math.min(scale, 2.731) + 'px';
+  document.documentElement.style.fontSize = baseSize * Math.min(scale, 2) + 'px';
 }
 // 初始化
 setRem();

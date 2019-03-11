@@ -1,4 +1,12 @@
-# hello
+# lottery
+
+## install [json-server](https://github.com/typicode/json-server)
+
+```
+npm install -g json-server
+
+json-server --watch db.json
+```
 
 ## Project setup
 ```
