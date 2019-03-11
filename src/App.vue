@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <lottery :start-num="3"></lottery>
+    <lottery :start-num="0"></lottery>
   </div>
 </template>
 
