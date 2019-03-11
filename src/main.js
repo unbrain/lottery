@@ -1,7 +1,7 @@
 import Vue from 'vue';
-import Axios from 'axios'
+import Axios from 'axios';
 import App from './App.vue';
-import plugin from './plugin'
+import plugin from './plugin';
 import './rem';
 import 'normalize.css';
 
