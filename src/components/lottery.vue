@@ -152,11 +152,6 @@ export default {
 
 <style lang="postcss" module>
 @import "../base/gobal.css";
-ul,
-li {
-  padding-inline-start: 0px;
-  list-style: none;
-}
 
 .svgactive {
   transform: scale(1.3);
@@ -165,6 +160,7 @@ li {
 .svgwrap {
   padding: 10px;
 }
+
 .svgContain {
   @mixin flexbox;
   position: relative;
@@ -188,11 +184,5 @@ li {
   border: 1px solid #af8f6f;
   font-size: 16px;
 }
-.icon {
-  width: 50px;
-  height: 50px;
-  vertical-align: -0.15em;
-  fill: currentColor;
-  overflow: hidden;
-}
+
 </style>

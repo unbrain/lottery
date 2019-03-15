@@ -1,18 +1,21 @@
 <template>
   <div id="app">
-    <lottery
+    <!-- <lottery
       :start-num="2"
       :direction="false"
-    ></lottery>
+    ></lottery> -->
+    <slotwrap></slotwrap>
   </div>
 </template>
 
 <script>
-import lottery from './components/lottery.vue';
+// import lottery from './components/lottery.vue';
+import slotwrap from './components/slotwrap'
 export default {
   name: 'app',
   components: {
-    'lottery': lottery
+    // lottery,
+    slotwrap
   }
 };
 </script>
