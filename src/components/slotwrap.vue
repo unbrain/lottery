@@ -3,12 +3,10 @@
     <div :class="$style.slotmachine">
       <slot-machine
         v-for="(item, index) in slotMachineDetails"
-        :currentSpeed="item.currentSpeed"
-        :stopIndex="item.stopIndex"
+        :details="item"
         :key="index"
         :mode="false"
         :play="move"
-        :svgIcons="icons"
         @movedown="move = false"
       ></slot-machine>
     </div>
@@ -29,21 +27,63 @@ export default {
   },
   data() {
     return {
-      icons: [
-        { url: "#icon-ningmeng" },
-        { url: "#icon-yumi" },
-        { url: "#icon-niuyouguo" },
-        { url: "#icon-qiezi" },
-        { url: "#icon-chelizi" },
-        { url: "#icon-kaixinguo" },
-        { url: "#icon-caihua" },
-        { url: "#icon-dacong" }
-      ],
       slotMachineDetails: [
-        { currentSpeed: 40, stopIndex: 1 },
-        { currentSpeed: 30, stopIndex: 1 },
-        { currentSpeed: 20, stopIndex: 1 },
-        { currentSpeed: 40, stopIndex: 2 }
+        {
+          currentSpeed: 40,
+          stopIndex: 1,
+          icons: [
+            { url: "#icon-ningmeng" },
+            { url: "#icon-yumi" },
+            { url: "#icon-niuyouguo" },
+            { url: "#icon-qiezi" },
+            { url: "#icon-chelizi" },
+            { url: "#icon-kaixinguo" },
+            { url: "#icon-caihua" },
+            { url: "#icon-dacong" }
+          ]
+        },
+        {
+          currentSpeed: 30,
+          stopIndex: 5,
+          icons: [
+            { url: "#icon-ningmeng" },
+            { url: "#icon-yumi" },
+            { url: "#icon-niuyouguo" },
+            { url: "#icon-qiezi" },
+            { url: "#icon-chelizi" },
+            { url: "#icon-kaixinguo" },
+            { url: "#icon-caihua" },
+            { url: "#icon-dacong" }
+          ]
+        },
+        {
+          currentSpeed: 10,
+          stopIndex: 5,
+          icons: [
+            { url: "#icon-ningmeng" },
+            { url: "#icon-yumi" },
+            { url: "#icon-niuyouguo" },
+            { url: "#icon-qiezi" },
+            { url: "#icon-chelizi" },
+            { url: "#icon-kaixinguo" },
+            { url: "#icon-caihua" },
+            { url: "#icon-dacong" }
+          ]
+        },
+        {
+          currentSpeed: 40,
+          stopIndex: 5,
+          icons: [
+            { url: "#icon-ningmeng" },
+            { url: "#icon-yumi" },
+            { url: "#icon-niuyouguo" },
+            { url: "#icon-qiezi" },
+            { url: "#icon-chelizi" },
+            { url: "#icon-kaixinguo" },
+            { url: "#icon-caihua" },
+            { url: "#icon-dacong" }
+          ]
+        },
       ],
       move: false,
     }

@@ -44,18 +44,6 @@
  */
 export default {
   props: {
-    svgIcons: {
-      type: Array,
-      required: true
-    },
-    currentSpeed: {
-      type: Number,
-      required: true
-    },
-    stopIndex: {
-      type: Number,
-      required: true
-    },
     mode: {
       type: Boolean,
       default: false
@@ -63,6 +51,9 @@ export default {
     play: {
       type: Boolean,
       default: false
+    },
+    details: {
+      type: Object
     }
   },
   data() {
@@ -72,7 +63,7 @@ export default {
       moveY: 0,
       iconHeight: 0,
       wrapHeight: 0,
-      cloneSvgIcons: this.svgIcons
+      cloneSvgIcons: this.details.icons
     }
   },
   computed: {
@@ -84,8 +75,8 @@ export default {
   },
   watch: {
     turnsNum(newValue) {
-      let speed1 = this.mode ? 15 : 10 + 10 * Math.random(1);
-      let speed2 = this.mode ? 2 : 2 + 2 * Math.random(1);
+      let speed1 = this.mode ? 15 : 5 + 20 * Math.random(1);
+      let speed2 = this.mode ? 3 : 1 + 5 * Math.random(1);
       if (newValue === 1) {
         clearInterval(this.timer);
         this.timer = this.playDetails(speed1);
@@ -93,23 +84,13 @@ export default {
         clearInterval(this.timer);
         this.timer = this.playDetails(speed2, true);
       }
-      //  else if (newValue === 4) {
-      //   clearInterval(this.timer);
-      //   this.timer = this.playDetails(9);
-      // } else if (newValue === 5) {
-      //   clearInterval(this.timer);
-      //   this.timer = this.playDetails(6);
-      // } else if (newValue === 6) {
-      //   clearInterval(this.timer);
-      //   this.timer = this.playDetails(3);
-      // }
     },
     play(newValue) {
       if (newValue === true) {
-        this.cloneSvgIcons = this.svgIcons;
+        this.cloneSvgIcons = this.details.icons;
         // 根据提供的停止位置对数据进行处理
-        this.cloneSvgIcons = this.cloneSvgIcons.slice(this.stopIndex).concat(this.cloneSvgIcons.slice(0, this.stopIndex));
-        this.timer = this.playDetails(this.currentSpeed);
+        this.cloneSvgIcons = this.cloneSvgIcons.slice(this.details.stopIndex).concat(this.cloneSvgIcons.slice(0, this.details.stopIndex));
+        this.timer = this.playDetails(this.details.currentSpeed);
       }
     },
   },
@@ -127,7 +108,7 @@ export default {
     //     }
     //   }, 50);
     // },
-    // 尝试　transition-group
+    // 尝试　transition-group  效果不佳
     // playDetails(speed, stop = false) {
     //   return setInterval(() => {
     //     if (this.cloneSvgIcons[2].url === "#icon-niuyouguo") {
@@ -157,20 +138,23 @@ export default {
         this.moveY = (this.moveY >= (this.wrapHeight - this.iconHeight)) ? 0 : this.moveY + speed;
         // 判断停止位置
         if (this.moveY === 0 && stop) {
-          this.moveY = 0;
-          clearInterval(this.timer);
-          this.turnsNum = 0;
-          this.$emit('movedown');
+          this.stop();
         }
       }, 30);
+    },
+    stop() {
+      this.moveY = 0;
+      clearInterval(this.timer);
+      this.turnsNum = 0;
+      this.$emit('movedown');
     }
   },
   created() {
     // this.timer = this.playDetails(30);
+
     this.$nextTick(() => {
       this.wrapHeight = this.$refs.svgcontain.clientHeight;
       this.iconHeight = this.$refs.icon.clientHeight;
-
     });
 
   },
