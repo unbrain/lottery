@@ -1,68 +1,80 @@
 {
-    "name": "lottry",
-    "version": "0.1.0",
-    "private": true,
-    "scripts": {
-        "serve": "vue-cli-service serve --port 8082",
-        "build": "vue-cli-service build",
-        "lint": "vue-cli-service lint",
-        "mock": "json-server --watch mock/db.json",
-        "mockdev": "npm run mock & npm run dev"
+  "name": "lottry",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "serve": "vue-cli-service serve --port 8082",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint",
+    "mock": "json-server --watch mock/db.json",
+    "mockdev": "npm run mock & npm run dev"
+  },
+  "dependencies": {
+    "axios": "^0.18.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-html": "^5.0.3",
+    "eslint-plugin-import": "^2.16.0",
+    "json-server": "^0.14.2",
+    "normalize.css": "^8.0.1",
+    "postcss-px-to-viewport": "^1.1.0",
+    "style-resources-loader": "^1.2.1",
+    "vue": "^2.6.6"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "^3.4.0",
+    "@vue/cli-plugin-eslint": "^3.4.0",
+    "@vue/cli-service": "^3.4.0",
+    "babel-eslint": "^10.0.1",
+    "css-loader": "^2.1.0",
+    "eslint": "^5.8.0",
+    "eslint-plugin-vue": "^5.2.2",
+    "node-sass": "^4.11.0",
+    "postcss-cssnext": "^3.1.0",
+    "postcss-import": "^12.0.1",
+    "postcss-load-config": "^2.0.0",
+    "postcss-loader": "^3.0.0",
+    "postcss-mixins": "^6.2.1",
+    "postcss-pxtorem": "^4.0.1",
+    "sass-loader": "^7.1.0",
+    "stylus": "^0.54.5",
+    "stylus-loader": "^3.0.2",
+    "vue-template-compiler": "^2.5.21"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
     },
-    "dependencies": {
-        "axios": "^0.18.0",
-        "eslint-config-airbnb-base": "^13.1.0",
-        "eslint-plugin-html": "^5.0.3",
-        "eslint-plugin-import": "^2.16.0",
-        "json-server": "^0.14.2",
-        "normalize.css": "^8.0.1",
-        "style-resources-loader": "^1.2.1",
-        "vue": "^2.6.6"
-    },
-    "devDependencies": {
-        "@vue/cli-plugin-babel": "^3.4.0",
-        "@vue/cli-plugin-eslint": "^3.4.0",
-        "@vue/cli-service": "^3.4.0",
-        "babel-eslint": "^10.0.1",
-        "css-loader": "^2.1.0",
-        "eslint": "^5.8.0",
-        "eslint-plugin-vue": "^5.2.2",
-        "node-sass": "^4.11.0",
-        "postcss-cssnext": "^3.1.0",
-        "postcss-import": "^12.0.1",
-        "postcss-load-config": "^2.0.0",
-        "postcss-loader": "^3.0.0",
-        "postcss-mixins": "^6.2.1",
-        "postcss-pxtorem": "^4.0.1",
-        "sass-loader": "^7.1.0",
-        "stylus": "^0.54.5",
-        "stylus-loader": "^3.0.2",
-        "vue-template-compiler": "^2.5.21"
-    },
-    "eslintConfig": {
-        "root": true,
-        "env": {
-            "node": true
-        },
-        "extends": [
-            "plugin:vue/essential",
-            "eslint:recommended"
+    "extends": [
+      "plugin:vue/essential",
+      "eslint:recommended"
+    ],
+    "rules": {},
+    "parserOptions": {
+      "parser": "babel-eslint"
+    }
+  },
+  "postcss": {
+    "plugins": {
+      "autoprefixer": {},
+      "postcss-import": {},
+      "postcss-mixins": {},
+      "postcss-px-to-viewport": {
+        "viewportWidth": 375,
+        "viewportHeight": 667,
+        "unitPrecision": 3,
+        "selectorBlackList": [
+          ".ignore",
+          ".hairlines"
         ],
-        "rules": {},
-        "parserOptions": {
-            "parser": "babel-eslint"
-        }
-    },
-    "postcss": {
-        "plugins": {
-            "autoprefixer": {},
-            "postcss-import": {},
-            "postcss-mixins": {}
-        }
-    },
-    "browserslist": [
-        "> 1%",
-        "last 2 versions",
-        "not ie <= 8"
-    ]
+        "minPixelValue": 3,
+        "mediaQuery": false
+      }
+    }
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not ie <= 8"
+  ]
 }

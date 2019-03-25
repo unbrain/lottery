@@ -37,10 +37,11 @@
 /**
  *  老虎机单个组件
  *  必须传入
- *  currentSpeed　开始速度
- *  stopIndex 停止位置(停止位从 0 开始)
+ *  details 对象包括了
+ *   - currentSpeed　开始速度
+ *   - stopIndex 停止位置(停止位从 0 开始)
  *  可选参数
- *  mode 模式　０　乱序模式（非同一时间线）１　有序模式（非同一时间线）
+ *  mode 模式　０　乱序模式（非同一时间线）１　有序模式（同一时间线）
  */
 export default {
   props: {
@@ -53,7 +54,8 @@ export default {
       default: false
     },
     details: {
-      type: Object
+      type: Object,
+      required: true
     }
   },
   data() {
@@ -130,7 +132,6 @@ export default {
     playDetails(speed, stop = false) {
       return setInterval(() => {
         //  计算圈数
-        // console.log(this.moveY)
         if (this.moveY === 0) {
           this.turnsNum++;
         }
@@ -151,7 +152,6 @@ export default {
   },
   created() {
     // this.timer = this.playDetails(30);
-
     this.$nextTick(() => {
       this.wrapHeight = this.$refs.svgcontain.clientHeight;
       this.iconHeight = this.$refs.icon.clientHeight;

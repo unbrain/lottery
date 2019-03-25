@@ -4,10 +4,10 @@
       <slot-machine
         v-for="(item, index) in slotMachineDetails"
         :details="item"
-        :key="index"
         :mode="false"
         :play="move"
         @movedown="move = false"
+        :key="index"
       ></slot-machine>
     </div>
     <div
