@@ -27,6 +27,7 @@
 </template>
 
 <script>
+
 /**
  * starNum 开始位置左上角为 0
  * speed 速度
@@ -80,6 +81,7 @@ export default {
         this.timer1 = this.playDetails(this.currentSpeed * 6, true);
       }
     }
+
   },
   methods: {
     play() {
@@ -184,5 +186,4 @@ export default {
   border: 1px solid #af8f6f;
   font-size: 16px;
 }
-
 </style>

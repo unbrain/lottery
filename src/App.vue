@@ -4,21 +4,20 @@
       :start-num="2"
       :direction="false"
     ></lottery> -->
-    <!-- <slotwrap></slotwrap> -->
-    <puzzle></puzzle>
+    <!-- <slotwrap></slotwrap>
+    <puzzle></puzzle> -->
+    <router-view></router-view>
   </div>
 </template>
 
 <script>
 // import lottery from './components/lottery.vue';
 // import slotwrap from './components/slotwrap';
-import puzzle from '@/components/puzzleVerification';
 export default {
   name: 'app',
   components: {
     // lottery,
     // slotwrap,
-    puzzle
   }
 };
 </script>
