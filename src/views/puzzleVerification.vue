@@ -14,6 +14,10 @@
         ref="canvasThr"
         :style="blockStyle"
       ></canvas>
+      <canvas
+        :class="[$style.canvas,$style.four]"
+        ref="canvasFou"
+      ></canvas>
       <svg
         :class="$style.refresh"
         aria-hidden="true"
@@ -47,6 +51,9 @@
         @touchstart="clickBlock"
         @touchmove="moveBlock"
         @touchend="leaveBlock"
+        @mousedown="clickBlock"
+        @mousemove="moveBlock"
+        @mouseup="leaveBlock"
         :style="blockStyle"
       >
         <svg
@@ -74,7 +81,7 @@ export default {
       moveStartX: 0,
       currentX: 0,
       blockX: 0,
-      x: 0,
+      clipX: 0,
       currentIndex: 0,
       errCount: 0,
       toast: false,
@@ -91,7 +98,8 @@ export default {
         require('@/assets/16-6.png'),
         require('@/assets/16-7.png'),
         require('@/assets/16-8.png'),
-        require('@/assets/16-9.png')]
+        require('@/assets/16-9.png')
+      ]
     }
   },
   methods: {
@@ -99,6 +107,7 @@ export default {
       this.ctx = this.$refs.canvasFir.getContext('2d');
       this.blockCtx = this.$refs.canvasSec.getContext('2d');
       this.thrCtx = this.$refs.canvasThr.getContext('2d');
+      this.fouCtx = this.$refs.canvasFou.getContext('2d');
       this.height = this.$refs.canvasFir.clientHeight;
       this.width = this.$refs.canvasFir.clientWidth;
       this.$refs.canvasFir.width = this.width;
@@ -107,43 +116,56 @@ export default {
       this.$refs.canvasSec.height = this.height;
       this.$refs.canvasThr.width = this.width;
       this.$refs.canvasThr.height = this.height;
+      this.$refs.canvasFou.width = this.width;
+      this.$refs.canvasFou.height = this.height;
     },
     drawImage(src) {
       let img = new Image();
       img.src = src;
-      console.log('width', this.width)
-      this.x = Math.floor(Math.random() * ((this.width) / 2 - 58) + this.width / 2);
-      let y = Math.floor(Math.random() * (this.height - 80));
-      this.blockX = Math.floor(Math.random() * ((this.width) / 2 - 58));
+      const squareWidth = this.width / 8 + 2 * this.width / 60 + 5;
+      const squareHeight = this.width / 8 + 4;
+      this.clipX = Math.floor(Math.random() * (this.width - squareWidth));
+      this.blockX = Math.floor(Math.random() * ((this.width) - squareWidth));
+      while (!(this.clipX - squareWidth > this.blockX || this.clipX + squareWidth < this.blockX)) {
+        this.blockX = Math.floor(Math.random() * ((this.width) - squareWidth));
+      }
+      let trickX = Math.floor(Math.random() * ((this.width) - squareWidth));
+      while (!((this.clipX - squareWidth > trickX || this.clipX + squareWidth < trickX)
+        && (this.blockX - squareWidth > trickX || this.blockX + squareWidth < trickX))) {
+        trickX = Math.floor(Math.random() * ((this.width) - squareWidth));
+      }
+      let y = Math.floor(Math.random() * (this.height - this.width / 5));
       this.moveStartX = this.blockX;
       this.currentX = this.blockX;
       img.onload = () => {
-        this.drawArc(this.ctx, this.x, y, 'fill');
-        this.drawArc(this.blockCtx, this.x, y, 'clip');
+        this.drawArc(this.ctx, this.clipX, y, 'fill');
+        this.drawArc(this.blockCtx, this.clipX, y, 'clip');
+        this.drawArc(this.fouCtx, trickX, y, 'clip');
         this.blockCtx.drawImage(img, 0, 0, this.width, this.height);
+        this.fouCtx.drawImage(img, 0, 0, this.width, this.height);
         this.ctx.drawImage(img, 0, 0, this.width, this.height);
-        const ImageData = this.blockCtx.getImageData(this.x - 2, y - 2, 59, 45);
+        const ImageData = this.blockCtx.getImageData(this.clipX - 4, y - 3, squareWidth, squareHeight);
         this.thrCtx.putImageData(ImageData, 0, y - 2);
       }
     },
-    //划线剪切 长 56 高 42 外边框 1
+    //划线剪切
     drawArc(ctx, x, y, operation) {
-      const l = 42;
-      const r = 8;
+      const l = this.width / 8;
+      const r = this.width / 60;
       const PI = Math.PI;
       ctx.beginPath();
       ctx.moveTo(x, y);
       ctx.lineTo(x + l, y);
-      ctx.arc(x + l + r - 2, y + l / 2, r, 1.21 * PI, 2.78 * PI)
-      ctx.lineTo(x + l, y + l)
-      ctx.arc(x + l / 2, y + l - r + 2, r, 2.26 * PI, 0.72 * PI, true)
-      ctx.lineTo(x, y + l)
-      ctx.lineTo(x, y)
-      ctx.lineWidth = 1
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'
-      ctx.strokeStyle = '#e4e7eb'
-      ctx.stroke()
-      ctx[operation]()
+      ctx.arc(x + l + r - 2, y + l / 2, r, 1.21 * PI, 2.78 * PI);
+      ctx.lineTo(x + l, y + l);
+      ctx.arc(x + l / 2, y + l - r + 2, r, 2.26 * PI, 0.72 * PI, true);
+      ctx.lineTo(x, y + l);
+      ctx.lineTo(x, y);
+      ctx.lineWidth = 1;
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.1)'
+      ctx.strokeStyle = '#eaebec'
+      ctx.stroke();
+      ctx[operation]();
     },
     clickBlock(e) {
       this.startTime = new Date();
@@ -151,14 +173,13 @@ export default {
     },
     moveBlock(e) {
       if (this.isMouseDown) {
-        this.currentX = e.touches[0].clientX - 60;
+        this.currentX = (e.clientX || e.touches[0].clientX) - this.width / 5;
       }
     },
     leaveBlock(e) {
       this.isMouseDown = false;
-      const barmove = e.changedTouches[0].clientX - this.moveStartX + 2 - 60;
-      const blockmove = this.x - this.blockX;
-      console.log(barmove, blockmove)
+      const barmove = (e.clientX || e.changedTouches[0].clientX) - this.moveStartX + 2 - this.width / 5;
+      const blockmove = this.clipX - this.blockX;
       if (barmove + 3 >= blockmove && barmove - 3 <= blockmove) {
         this.endTime = new Date();
         const time = (this.endTime - this.startTime) / 1000;
@@ -193,14 +214,11 @@ export default {
             this.currentX = this.moveStartX;
           }, 1000);
         }
-
       }
-
     },
     refresh() {
       this.toast = false;
       this.errCount = 0;
-      console.log('re', this.moveStartX, this.currentX);
       this.setCanvas();
       this.currentIndex = (this.currentIndex === this.imgSrcs.length - 1) ? 0 : this.currentIndex + 1;
       this.drawImage(this.imgSrcs[this.currentIndex]);
@@ -208,9 +226,7 @@ export default {
   },
   computed: {
     blockStyle() {
-      console.log('move', this.currentX, this.moveStartX)
       let move = this.moveStartX + (this.currentX - this.moveStartX);
-      console.log(move)
       if (move < 0) {
         move = 0;
       } else if (move > this.width) {
@@ -254,6 +270,12 @@ export default {
   top: 0;
 }
 .three {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
+}
+.four {
   position: absolute;
   left: 0;
   top: 0;
