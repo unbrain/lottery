@@ -1,5 +1,9 @@
 <template>
-  <div :class="$style.wrap">
+  <div
+    :class="$style.wrap"
+    @mousemove="moveBlock"
+    @mouseup="leaveBlock"
+  >
     <div :class="$style.imgwrap">
       <canvas
         :class="[$style.canvas,$style.one]"
@@ -28,7 +32,7 @@
       <svg
         :class="$style.close"
         aria-hidden="true"
-        @click="$router.push('/')"
+        @click="$router.push('/slotwrap')"
       >
         <use xlink:href="#icon-close"></use>
       </svg>
@@ -52,8 +56,6 @@
         @touchmove="moveBlock"
         @touchend="leaveBlock"
         @mousedown="clickBlock"
-        @mousemove="moveBlock"
-        @mouseup="leaveBlock"
         :style="blockStyle"
       >
         <svg
@@ -103,6 +105,7 @@ export default {
       endTime: '',
       barMove: 0,
       blockMove: 0,
+      open: true,
       imgSrcs: [
         require('@/assets/16-0.jpg'),
         require('@/assets/16-1.png'),
@@ -214,11 +217,16 @@ export default {
         const time = (this.endTime - this.startTime) / 1000;
         if (time > 5) {
           this.verifyRetry(e, `用时${time}s,超过5s`);
+          if (this.errCount >= 2) {
+            console.log(this.errCount);
+            this.verifyNext('三次防刷');
+          }
         } else {
           this.verifyNext(`恭喜你成功了,用时${time}s`);
         }
       } else {
         if (this.errCount >= 2) {
+          console.log(this.errCount);
           this.verifyNext('三次防刷');
         } else {
           this.verifyRetry(e, '验证失败了。。');
@@ -233,22 +241,23 @@ export default {
       }, 1000);
     },
     verifyRetry(e, msg) {
+      console.log(e)
       this.actionMsg = msg;
       this.toast = true;
       setTimeout(() => {
         this.toast = false;
-        let open = true;
         if (e.type === 'touchend') {
           this.errCount++;
-          open = false;
+          this.open = false;
         }
-        if (open) {
+        if (this.open) {
           if (e.type === 'mouseup') {
             this.errCount++;
           }
         }
         this.currentX = this.moveStartX;
       }, 1000);
+      console.log(this.errCount);
     },
     refresh() {
       this.toast = false;
