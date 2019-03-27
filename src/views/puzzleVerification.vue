@@ -221,7 +221,13 @@ export default {
       this.isMouseDown = false;
       this.barMove = (e.clientX || e.changedTouches[0].clientX) - this.moveStartX + 2 - this.pointLeft - this.inView.left;
       this.blockMove = this.clipX - this.blockX;
-      this.verify(e);
+      if (e.type === 'touchend') {
+        this.verify(e);
+        this.open = false;
+      }
+      if (this.open) {
+        this.verify(e);
+      }
     },
     verify(e) {
       if (this.barMove + 3 >= this.blockMove && this.barMove - 3 <= this.blockMove) {
@@ -257,15 +263,7 @@ export default {
       this.toast = true;
       setTimeout(() => {
         this.toast = false;
-        if (e.type === 'touchend') {
-          this.errCount++;
-          this.open = false;
-        }
-        if (this.open) {
-          if (e.type === 'mouseup') {
-            this.errCount++;
-          }
-        }
+        this.errCount++;
         this.currentX = this.moveStartX;
       }, 1000);
       console.log(this.errCount);
