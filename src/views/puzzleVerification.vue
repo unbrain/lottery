@@ -134,7 +134,7 @@ export default {
       }
     },
     imageInit() {
-      this.puzzle.width = this.puzzle.l + 2 * this.puzzle.r;
+      this.puzzle.width = this.puzzle.l + 2 * this.puzzle.r + 1;
       this.puzzle.height = this.puzzle.l + 3;
       this.clipX = Math.floor(Math.random() * (this.inView.width - this.puzzle.width));
       this.blockX = Math.floor(Math.random() * ((this.inView.width) - this.puzzle.width));
