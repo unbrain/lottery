@@ -12,11 +12,11 @@
       <canvas
         :class="[$style.canvas,$style.three]"
         ref="canvasThr"
-        :style="blockStyle"
       ></canvas>
       <canvas
         :class="[$style.canvas,$style.four]"
         ref="canvasFou"
+        :style="blockStyle"
       ></canvas>
       <svg
         :class="$style.refresh"
@@ -59,7 +59,6 @@
         <svg
           :class="$style.left"
           aria-hidden="true"
-          @click="refresh"
         >
           <use xlink:href="#icon-left"></use>
         </svg>
@@ -72,22 +71,38 @@
 export default {
   data() {
     return {
-      width: 0,
-      height: 0,
+      inView: {
+        width: 0,
+        height: 0,
+        left: 0,
+        right: 0,
+      },
+      puzzle: {
+        l: 0,
+        r: 0,
+        height: 0,
+        width: 0
+      },
+      pointLeft: 0,
       ctx: '',
-      blockCtx: '',
+      twoCtx: '',
       thrCtx: '',
+      fouCtx: '',
       isMouseDown: false,
       moveStartX: 0,
       currentX: 0,
       blockX: 0,
+      blockY: 0,
       clipX: 0,
+      trickX: 0,
       currentIndex: 0,
       errCount: 0,
       toast: false,
       actionMsg: '',
       startTime: '',
       endTime: '',
+      barMove: 0,
+      blockMove: 0,
       imgSrcs: [
         require('@/assets/16-0.jpg'),
         require('@/assets/16-1.png'),
@@ -103,55 +118,60 @@ export default {
     }
   },
   methods: {
-    setCanvas() {
+    init() {
       this.ctx = this.$refs.canvasFir.getContext('2d');
-      this.blockCtx = this.$refs.canvasSec.getContext('2d');
+      this.twoCtx = this.$refs.canvasSec.getContext('2d');
       this.thrCtx = this.$refs.canvasThr.getContext('2d');
       this.fouCtx = this.$refs.canvasFou.getContext('2d');
-      this.height = this.$refs.canvasFir.clientHeight;
-      this.width = this.$refs.canvasFir.clientWidth;
-      this.$refs.canvasFir.width = this.width;
-      this.$refs.canvasFir.height = this.height;
-      this.$refs.canvasSec.width = this.width;
-      this.$refs.canvasSec.height = this.height;
-      this.$refs.canvasThr.width = this.width;
-      this.$refs.canvasThr.height = this.height;
-      this.$refs.canvasFou.width = this.width;
-      this.$refs.canvasFou.height = this.height;
+      Object.assign(this.inView, this.$refs.canvasFir.getBoundingClientRect().toJSON());
+      this.puzzle.l = this.inView.width / 8;
+      this.puzzle.r = this.inView.width / 40;
+      this.$refs.block.style.width = this.puzzle.l + 2 * this.puzzle.r + 'px';
+      // 对 canvas 的宽高进行赋值以免图片模糊
+      for (let key in this.$refs) {
+        this.$refs[key].width = this.inView.width;
+        this.$refs[key].height = this.inView.height;
+      }
+    },
+    imageInit() {
+      this.puzzle.width = this.puzzle.l + 2 * this.puzzle.r;
+      this.puzzle.height = this.puzzle.l + 3;
+      this.clipX = Math.floor(Math.random() * (this.inView.width - this.puzzle.width));
+      this.blockX = Math.floor(Math.random() * ((this.inView.width) - this.puzzle.width));
+      while (!(this.clipX - this.puzzle.width > this.blockX || this.clipX + this.puzzle.width < this.blockX)) {
+        this.blockX = Math.floor(Math.random() * ((this.inView.width) - this.puzzle.width));
+      }
+      this.trickX = Math.floor(Math.random() * ((this.inView.width) - this.puzzle.width));
+      while (!((this.clipX - this.puzzle.width > this.trickX || this.clipX + this.puzzle.width < this.trickX)
+        && (this.blockX - this.puzzle.width > this.trickX || this.blockX + this.puzzle.width < this.trickX))) {
+        this.trickX = Math.floor(Math.random() * ((this.inView.width) - this.puzzle.width));
+      }
+      this.blockY = Math.floor(Math.random() * (this.inView.height - this.inView.width / 5));
+      this.moveStartX = this.blockX;
+      this.currentX = this.blockX;
     },
     drawImage(src) {
       let img = new Image();
       img.src = src;
-      const squareWidth = this.width / 8 + 2 * this.width / 60 + 5;
-      const squareHeight = this.width / 8 + 4;
-      this.clipX = Math.floor(Math.random() * (this.width - squareWidth));
-      this.blockX = Math.floor(Math.random() * ((this.width) - squareWidth));
-      while (!(this.clipX - squareWidth > this.blockX || this.clipX + squareWidth < this.blockX)) {
-        this.blockX = Math.floor(Math.random() * ((this.width) - squareWidth));
-      }
-      let trickX = Math.floor(Math.random() * ((this.width) - squareWidth));
-      while (!((this.clipX - squareWidth > trickX || this.clipX + squareWidth < trickX)
-        && (this.blockX - squareWidth > trickX || this.blockX + squareWidth < trickX))) {
-        trickX = Math.floor(Math.random() * ((this.width) - squareWidth));
-      }
-      let y = Math.floor(Math.random() * (this.height - this.width / 5));
-      this.moveStartX = this.blockX;
-      this.currentX = this.blockX;
+      this.imageInit();
       img.onload = () => {
-        this.drawArc(this.ctx, this.clipX, y, 'fill');
-        this.drawArc(this.blockCtx, this.clipX, y, 'clip');
-        this.drawArc(this.fouCtx, trickX, y, 'clip');
-        this.blockCtx.drawImage(img, 0, 0, this.width, this.height);
-        this.fouCtx.drawImage(img, 0, 0, this.width, this.height);
-        this.ctx.drawImage(img, 0, 0, this.width, this.height);
-        const ImageData = this.blockCtx.getImageData(this.clipX - 4, y - 3, squareWidth, squareHeight);
-        this.thrCtx.putImageData(ImageData, 0, y - 2);
+        // 画布 底层
+        this.ctx.drawImage(img, 0, 0, this.inView.width, this.inView.height);
+        // 切拼图层
+        this.drawArc(this.twoCtx, this.clipX, this.blockY, 'clip');
+        this.twoCtx.drawImage(img, 0, 0, this.inView.width, this.inView.height);
+        // 画两个假拼图块
+        this.drawArc(this.thrCtx, this.clipX, this.blockY, 'fill');
+        this.drawArc(this.thrCtx, this.trickX, this.blockY, 'fill');
+        // 画移动块层
+        const ImageData = this.twoCtx.getImageData(this.clipX - 1, this.blockY - 2, this.puzzle.width, this.puzzle.height);
+        this.fouCtx.putImageData(ImageData, 0, this.blockY - 2);
       }
     },
     //划线剪切
     drawArc(ctx, x, y, operation) {
-      const l = this.width / 8;
-      const r = this.width / 60;
+      const l = this.puzzle.l;
+      const r = this.puzzle.r;
       const PI = Math.PI;
       ctx.beginPath();
       ctx.moveTo(x, y);
@@ -161,76 +181,94 @@ export default {
       ctx.arc(x + l / 2, y + l - r + 2, r, 2.26 * PI, 0.72 * PI, true);
       ctx.lineTo(x, y + l);
       ctx.lineTo(x, y);
+      ctx.closePath();
       ctx.lineWidth = 1;
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.1)'
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
       ctx.strokeStyle = '#eaebec'
       ctx.stroke();
-      ctx[operation]();
+      if (operation) {
+        ctx[operation]();
+      }
     },
     clickBlock(e) {
       this.startTime = new Date();
       this.isMouseDown = true;
+      this.pointLeft = (e.clientX || e.touches[0].clientX) - this.$refs.block.getBoundingClientRect().left;
+      this.moveStartX = (e.clientX || e.touches[0].clientX) - this.pointLeft - this.inView.left;
+      this.currentX = (e.clientX || e.touches[0].clientX) - this.pointLeft - this.inView.left;
     },
     moveBlock(e) {
       if (this.isMouseDown) {
-        this.currentX = (e.clientX || e.touches[0].clientX) - this.width / 5;
+        this.currentX = (e.clientX || e.touches[0].clientX) - this.pointLeft - this.inView.left;
       }
     },
     leaveBlock(e) {
+      this.endTime = new Date();
       this.isMouseDown = false;
-      const barmove = (e.clientX || e.changedTouches[0].clientX) - this.moveStartX + 2 - this.width / 5;
-      const blockmove = this.clipX - this.blockX;
-      if (barmove + 3 >= blockmove && barmove - 3 <= blockmove) {
-        this.endTime = new Date();
+      this.barMove = (e.clientX || e.changedTouches[0].clientX) - this.moveStartX + 2 - this.pointLeft - this.inView.left;
+      this.blockMove = this.clipX - this.blockX;
+      this.verify(e);
+    },
+    verify(e) {
+      if (this.barMove + 3 >= this.blockMove && this.barMove - 3 <= this.blockMove) {
         const time = (this.endTime - this.startTime) / 1000;
         if (time > 5) {
-          this.actionMsg = `用时${time}s,超过5s`;
-          this.toast = true;
-          setTimeout(() => {
-            this.toast = false;
-            this.errCount++;
-            this.currentX = this.moveStartX;
-          }, 1000);
+          this.verifyRetry(e, `用时${time}s,超过5s`);
         } else {
-          this.actionMsg = `恭喜你成功了,用时${time}s`;
-          this.toast = true;
-          setTimeout(() => {
-            this.refresh();
-          }, 1000);
+          this.verifyNext(`恭喜你成功了,用时${time}s`);
         }
       } else {
         if (this.errCount >= 2) {
-          this.actionMsg = '三次防刷';
-          this.toast = true;
-          setTimeout(() => {
-            this.refresh();
-          }, 1000);
+          this.verifyNext('三次防刷');
         } else {
-          this.actionMsg = '验证失败了。。';
-          this.toast = true;
-          setTimeout(() => {
-            this.toast = false;
-            this.errCount++;
-            this.currentX = this.moveStartX;
-          }, 1000);
+          this.verifyRetry(e, '验证失败了。。');
         }
       }
+    },
+    verifyNext(msg) {
+      this.actionMsg = msg;
+      this.toast = true;
+      setTimeout(() => {
+        this.refresh();
+      }, 1000);
+    },
+    verifyRetry(e, msg) {
+      this.actionMsg = msg;
+      this.toast = true;
+      setTimeout(() => {
+        this.toast = false;
+        let open = true;
+        if (e.type === 'touchend') {
+          this.errCount++;
+          open = false;
+        }
+        if (open) {
+          if (e.type === 'mouseup') {
+            this.errCount++;
+          }
+        }
+        this.currentX = this.moveStartX;
+      }, 1000);
     },
     refresh() {
       this.toast = false;
       this.errCount = 0;
-      this.setCanvas();
+      this.init();
       this.currentIndex = (this.currentIndex === this.imgSrcs.length - 1) ? 0 : this.currentIndex + 1;
       this.drawImage(this.imgSrcs[this.currentIndex]);
     }
   },
   computed: {
     blockStyle() {
+      let maxWidth = this.inView.width;
+      if (this.$refs.block) {
+        maxWidth = maxWidth - this.$refs.block.getBoundingClientRect().width;
+      }
       let move = this.moveStartX + (this.currentX - this.moveStartX);
       if (move < 0) {
         move = 0;
-      } else if (move > this.width) {
-        move = this.width;
+      } else if (move > maxWidth) {
+        move = maxWidth;
       }
       return {
         marginLeft: `${move}px`
@@ -239,7 +277,7 @@ export default {
   },
   created() {
     this.$nextTick(() => {
-      this.setCanvas();
+      this.init();
       this.drawImage(this.imgSrcs[this.currentIndex]);
     });
   }
@@ -262,7 +300,6 @@ export default {
   overflow: hidden;
 }
 .one {
-  z-index: 10;
 }
 .two {
   position: absolute;
@@ -273,7 +310,6 @@ export default {
   position: absolute;
   left: 0;
   top: 0;
-  z-index: 1;
 }
 .four {
   position: absolute;
@@ -285,6 +321,7 @@ export default {
   top: 0;
   left: 0;
   width: 100%;
+  font-size: 16px;
   line-height: 30px;
   background-color: rgba(255, 255, 255, 0.3);
   transition: 1s ease;
