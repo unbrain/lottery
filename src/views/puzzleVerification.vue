@@ -217,16 +217,19 @@ export default {
 
     },
     leaveBlock(e) {
-      this.endTime = new Date();
-      this.isMouseDown = false;
-      this.barMove = (e.clientX || e.changedTouches[0].clientX) - this.moveStartX + 2 - this.pointLeft - this.inView.left;
-      this.blockMove = this.clipX - this.blockX;
-      if (e.type === 'touchend') {
-        this.verify(e);
-        this.open = false;
-      }
-      if (this.open) {
-        this.verify(e);
+      if (this.isMouseDown) {
+        this.endTime = new Date();
+        this.isMouseDown = false;
+        this.barMove = (e.clientX || e.changedTouches[0].clientX) - this.moveStartX + 2 - this.pointLeft - this.inView.left;
+        this.blockMove = this.clipX - this.blockX;
+        console.log(e.type)
+        if (e.type === 'touchend' || 'touchmove') {
+          this.verify(e);
+          this.open = false;
+        }
+        if (this.open) {
+          this.verify(e);
+        }
       }
     },
     verify(e) {
