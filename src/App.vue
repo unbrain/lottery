@@ -1,11 +1,8 @@
 <template>
   <div id="app">
-    <!-- <lottery
-      :start-num="2"
-      :direction="false"
-    ></lottery> -->
-    <!-- <slotwrap></slotwrap>
-    <puzzle></puzzle> -->
+    <p @click="$router.push('/pv')">拼图验证</p>
+    <p @click="$router.push('/lottery')">抽奖九宫格</p>
+    <p @click="$router.push('/slotwrap')">老虎机</p>
     <router-view></router-view>
   </div>
 </template>
@@ -29,5 +26,9 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
+}
+p{
+  font-size: 16px;
+  line-height: 32px;
 }
 </style>

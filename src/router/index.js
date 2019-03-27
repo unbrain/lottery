@@ -10,6 +10,10 @@ export default new Router({
   routes: [
     {
       path: '/',
+      redirect: '/pv'
+    },
+    {
+      path: '/lottery',
       name: 'lottery',
       component: lottery,
     },
