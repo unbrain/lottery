@@ -1,69 +1,72 @@
 <template>
-  <div
-    :class="$style.wrap"
-    @mousemove="moveBlock"
-    @mouseup="leaveBlock"
-  >
-    <div :class="$style.imgwrap">
-      <canvas
-        :class="[$style.canvas,$style.one]"
-        ref="canvasFir"
-      ></canvas>
-      <canvas
-        :class="[$style.canvas,$style.two]"
-        ref="canvasSec"
-      ></canvas>
-      <canvas
-        :class="[$style.canvas,$style.three]"
-        ref="canvasThr"
-      ></canvas>
-      <canvas
-        :class="[$style.canvas,$style.four]"
-        ref="canvasFou"
-        :style="blockStyle"
-      ></canvas>
-      <svg
-        :class="$style.refresh"
-        aria-hidden="true"
-        @click="refresh"
-      >
-        <use xlink:href="#icon-refresh"></use>
-      </svg>
-      <svg
-        :class="$style.close"
-        aria-hidden="true"
-        @click="$router.push('/slotwrap')"
-      >
-        <use xlink:href="#icon-close"></use>
-      </svg>
-      <transition
-        name="list"
-        tag="div"
-      >
-        <div
-          :class="$style.toast"
-          v-if="toast"
-          v-text="actionMsg"
-        ></div>
-      </transition>
-    </div>
-
-    <div :class="$style.barwrap">
-      <div
-        :class="$style.block"
-        ref="block"
-        @touchstart="clickBlock"
-        @touchmove="moveBlock"
-        @touchend="leaveBlock"
-        @mousedown="clickBlock"
-        :style="blockStyle"
-      >
+  <div :class="$style.contain">
+    <div
+      :class="$style.wrap"
+      @mousemove="moveBlock"
+      @mouseup="leaveBlock"
+      ref="wrap"
+    >
+      <div :class="$style.imgwrap">
+        <canvas
+          :class="[$style.canvas,$style.one]"
+          ref="canvasFir"
+        ></canvas>
+        <canvas
+          :class="[$style.canvas,$style.two]"
+          ref="canvasSec"
+        ></canvas>
+        <canvas
+          :class="[$style.canvas,$style.three]"
+          ref="canvasThr"
+        ></canvas>
+        <canvas
+          :class="[$style.canvas,$style.four]"
+          ref="canvasFou"
+          :style="blockStyle"
+        ></canvas>
         <svg
-          :class="$style.left"
+          :class="$style.refresh"
           aria-hidden="true"
+          @click="refresh"
         >
-          <use xlink:href="#icon-left"></use>
+          <use xlink:href="#icon-refresh"></use>
         </svg>
+        <svg
+          :class="$style.close"
+          aria-hidden="true"
+          @click="$router.push('/slotwrap')"
+        >
+          <use xlink:href="#icon-close"></use>
+        </svg>
+        <transition
+          name="list"
+          tag="div"
+        >
+          <div
+            :class="$style.toast"
+            v-if="toast"
+            v-text="actionMsg"
+          ></div>
+        </transition>
+      </div>
+
+      <div :class="$style.barwrap">
+        <div
+          :class="$style.block"
+          ref="block"
+          @touchstart="clickBlock"
+          @touchmove="moveBlock"
+          @touchend="leaveBlock"
+          @mousedown="clickBlock"
+          :style="blockStyle"
+        >
+          <svg
+            :class="$style.left"
+            aria-hidden="true"
+          >
+            <use xlink:href="#icon-left"></use>
+          </svg>
+        </div>
       </div>
     </div>
   </div>
@@ -194,16 +197,24 @@ export default {
       }
     },
     clickBlock(e) {
+      let x = (e.clientX || e.touches[0].clientX);
       this.startTime = new Date();
       this.isMouseDown = true;
-      this.pointLeft = (e.clientX || e.touches[0].clientX) - this.$refs.block.getBoundingClientRect().left;
-      this.moveStartX = (e.clientX || e.touches[0].clientX) - this.pointLeft - this.inView.left;
-      this.currentX = (e.clientX || e.touches[0].clientX) - this.pointLeft - this.inView.left;
+      this.pointLeft = x - this.$refs.block.getBoundingClientRect().left;
+      this.moveStartX = x - this.pointLeft - this.inView.left;
+      this.currentX = x - this.pointLeft - this.inView.left;
     },
     moveBlock(e) {
       if (this.isMouseDown) {
-        this.currentX = (e.clientX || e.touches[0].clientX) - this.pointLeft - this.inView.left;
+        let x = (e.clientX || e.touches[0].clientX);
+        let y = (e.clientY || e.touches[0].clientY);
+        this.currentX = x - this.pointLeft - this.inView.left;
+        const { left, top, width, height } = this.$refs.wrap.getBoundingClientRect();
+        if (x <= left || x >= Math.floor(left + width) || y <= top || y >= Math.floor(top + height)) {
+          this.leaveBlock(e);
+        }
       }
+
     },
     leaveBlock(e) {
       this.endTime = new Date();
@@ -295,10 +306,17 @@ export default {
 
 <style lang="postcss" module>
 @import "../base/gobal.css";
+.contain {
+  margin-top: 30px;
+  @mixin flexbox;
+}
 .wrap {
   @mixin flexbox;
+  padding: 10px;
   flex-direction: column;
-  margin: 30vw auto 0 auto;
+  background-color: #fff;
+  box-shadow: 0 4px 20px 0 rgba(56, 67, 74, 0.5);
+  border-radius: 4px;
 }
 .canvas {
   width: 80vw;
