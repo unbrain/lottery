@@ -237,6 +237,7 @@ export default {
       this.startY = (e.clientY || e.touches[0].clientY);
       this.startTime = new Date();
       this.isMouseDown = true;
+      this.isYMove = false;
       this.pointLeft = x - this.$refs.block.getBoundingClientRect().left;
       this.moveStartX = x - this.pointLeft - this.inView.left;
       this.currentX = x - this.pointLeft - this.inView.left;
@@ -256,7 +257,6 @@ export default {
           }
         }
       }
-
     },
     leaveBlock(e) {
       if (this.isMouseDown) {
