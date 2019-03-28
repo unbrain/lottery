@@ -25,7 +25,7 @@ export default new Router({
     {
       path: '/pv',
       name: 'pv',
-      component: pv,
+      component: pv
     }
   ]
 });

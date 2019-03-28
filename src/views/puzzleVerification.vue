@@ -25,7 +25,7 @@
           :style="blockStyle"
         ></canvas>
         <svg
-          :class="$style.refresh"
+          :class="[$style.refresh, {[$style.refreshaction]: isRefresh}]"
           aria-hidden="true"
           @click="refresh"
         >
@@ -74,6 +74,36 @@
 
 <script>
 export default {
+  props: {
+    config: {
+      default: () => {
+        return {
+          deviation: 3,// 两块拼图重合判断为成功时 x 轴最大偏移量
+          puzzleFake: true,// 假拼图是否存在
+          onSuccess(time, fn) {
+            // 字符串可修改，注释将不显示提示信息
+            fn(`成功了，用时${time}s`);
+          },
+          onFailed(fn) {
+            fn('验证失败了。。');
+          },
+          onRobot(fn, cc) {
+            fn('你还是人类吗');
+            if (cc) {
+              cc()
+            }
+          },
+          onMuchTry(fn) {
+            fn('三次防刷');
+          },
+          onTimeout(time, fn) {
+            fn(`用时${time}s,超过5s`);
+          }
+        }
+      },
+      type: Object
+    }
+  },
   data() {
     return {
       inView: {
@@ -109,6 +139,10 @@ export default {
       barMove: 0,
       blockMove: 0,
       open: true,
+      isRefresh: false,
+      refreshTime: 1000,
+      isYMove: false,
+      startY: 0,
       imgSrcs: [
         require('@/assets/16-0.jpg'),
         require('@/assets/16-1.png'),
@@ -168,7 +202,9 @@ export default {
         this.twoCtx.drawImage(img, 0, 0, this.inView.width, this.inView.height);
         // 画两个假拼图块
         this.drawArc(this.thrCtx, this.clipX, this.blockY, 'fill');
-        this.drawArc(this.thrCtx, this.trickX, this.blockY, 'fill');
+        if (this.config.puzzleFake) {
+          this.drawArc(this.thrCtx, this.trickX, this.blockY, 'fill');
+        }
         // 画移动块层
         const ImageData = this.twoCtx.getImageData(this.clipX - 1, this.blockY - 2, this.puzzle.width, this.puzzle.height);
         this.fouCtx.putImageData(ImageData, 0, this.blockY - 2);
@@ -198,6 +234,7 @@ export default {
     },
     clickBlock(e) {
       let x = (e.clientX || e.touches[0].clientX);
+      this.startY = (e.clientY || e.touches[0].clientY);
       this.startTime = new Date();
       this.isMouseDown = true;
       this.pointLeft = x - this.$refs.block.getBoundingClientRect().left;
@@ -213,6 +250,11 @@ export default {
         if (x <= left || x >= Math.floor(left + width) || y <= top || y >= Math.floor(top + height)) {
           this.leaveBlock(e);
         }
+        if (!this.isYMove) {
+          if (y !== this.startY) {
+            this.isYMove = true;
+          }
+        }
       }
 
     },
@@ -220,10 +262,9 @@ export default {
       if (this.isMouseDown) {
         this.endTime = new Date();
         this.isMouseDown = false;
-        this.barMove = (e.clientX || e.changedTouches[0].clientX) - this.moveStartX + 2 - this.pointLeft - this.inView.left;
+        this.barMove = (e.clientX || e.changedTouches[0].clientX) - this.moveStartX - this.pointLeft - this.inView.left;
         this.blockMove = this.clipX - this.blockX;
-        console.log(e.type)
-        if (e.type === 'touchend' || 'touchmove') {
+        if (e.type === 'touchend' || e.type === 'touchmove') {
           this.verify(e);
           this.open = false;
         }
@@ -233,50 +274,66 @@ export default {
       }
     },
     verify(e) {
-      if (this.barMove + 3 >= this.blockMove && this.barMove - 3 <= this.blockMove) {
-        const time = (this.endTime - this.startTime) / 1000;
-        if (time > 5) {
-          this.verifyRetry(e, `用时${time}s,超过5s`);
-          if (this.errCount >= 2) {
-            console.log(this.errCount);
-            this.verifyNext('三次防刷');
+      if (this.isYMove) {
+        if (this.barMove + this.config.deviation >= this.blockMove && this.barMove - this.config.deviation <= this.blockMove) {
+          const time = ((this.endTime - this.startTime) / 1000).toFixed(2);
+          if (time > 5) {
+            this.config.onTimeout(time, this.showMsg);
+            this.verifyRetry(e);
+            if (this.errCount >= 2) {
+              this.config.onMuchTry(this.showMsg);
+              this.verifyNext();
+            }
+          } else {
+            this.config.onSuccess(time, this.showMsg);
+            this.verifyNext();
           }
         } else {
-          this.verifyNext(`恭喜你成功了,用时${time}s`);
+          if (this.errCount >= 2) {
+            this.config.onMuchTry(this.showMsg);
+            this.verifyNext();
+          } else {
+            this.config.onFailed(this.showMsg);
+            this.verifyRetry(e);
+          }
         }
       } else {
+        this.config.onRobot(this.showMsg);
+        this.verifyRetry(e);
         if (this.errCount >= 2) {
-          console.log(this.errCount);
-          this.verifyNext('三次防刷');
-        } else {
-          this.verifyRetry(e, '验证失败了。。');
+          this.config.onMuchTry(this.showMsg);
+          this.verifyNext();
         }
       }
     },
-    verifyNext(msg) {
-      this.actionMsg = msg;
-      this.toast = true;
+    verifyNext() {
       setTimeout(() => {
         this.refresh();
       }, 1000);
     },
-    verifyRetry(e, msg) {
-      console.log(e)
-      this.actionMsg = msg;
-      this.toast = true;
+    verifyRetry(e) {
       setTimeout(() => {
         this.toast = false;
         this.errCount++;
         this.currentX = this.moveStartX;
       }, 1000);
-      console.log(this.errCount);
+    },
+    showMsg(msg) {
+      this.actionMsg = msg;
+      this.toast = true;
     },
     refresh() {
-      this.toast = false;
-      this.errCount = 0;
-      this.init();
-      this.currentIndex = (this.currentIndex === this.imgSrcs.length - 1) ? 0 : this.currentIndex + 1;
-      this.drawImage(this.imgSrcs[this.currentIndex]);
+      if (!this.isRefresh) {
+        this.isRefresh = true;
+        setTimeout(() => {
+          this.isRefresh = false;
+          this.toast = false;
+          this.errCount = 0;
+          this.init();
+          this.currentIndex = (this.currentIndex === this.imgSrcs.length - 1) ? 0 : this.currentIndex + 1;
+          this.drawImage(this.imgSrcs[this.currentIndex]);
+        }, this.refreshTime);
+      }
     }
   },
   computed: {
@@ -373,6 +430,10 @@ export default {
   bottom: 10px;
   height: 24px;
   width: 24px;
+}
+.refreshaction {
+  transition: 1s;
+  transform: rotate(-720deg);
 }
 .close {
   position: absolute;
