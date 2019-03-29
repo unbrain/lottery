@@ -3,7 +3,6 @@
     :class="$style.contain"
     @mousemove="moveBlock"
     @mouseup="leaveBlock"
-    @touchstart.prevent
   >
     <div
       :class="$style.wrap"
@@ -58,6 +57,7 @@
           :class="$style.block"
           ref="block"
           @touchstart="clickBlock"
+          @touchstart.prevent
           @touchmove="moveBlock"
           @touchend="leaveBlock"
           @mousedown="clickBlock"
