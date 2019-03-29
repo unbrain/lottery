@@ -1,9 +1,11 @@
 <template>
-  <div :class="$style.contain">
+  <div
+    :class="$style.contain"
+    @mousemove="moveBlock"
+    @mouseup="leaveBlock"
+  >
     <div
       :class="$style.wrap"
-      @mousemove="moveBlock"
-      @mouseup="leaveBlock"
       ref="wrap"
     >
       <div :class="$style.imgwrap">
@@ -79,7 +81,8 @@ export default {
       default: () => {
         return {
           deviation: 3,// 两块拼图重合判断为成功时 x 轴最大偏移量
-          puzzleFake: true,// 假拼图是否存在
+          puzzleFake: true,// 混淆拼图是否存在
+          touchDeadline: 5,// 滑动有效时间
           onSuccess(time, fn) {
             // 字符串可修改，注释将不显示提示信息
             fn(`成功了，用时${time}s`);
@@ -87,17 +90,14 @@ export default {
           onFailed(fn) {
             fn('验证失败了。。');
           },
-          onRobot(fn, cc) {
+          onRobot(fn) {
             fn('你还是人类吗');
-            if (cc) {
-              cc()
-            }
           },
           onMuchTry(fn) {
             fn('三次防刷');
           },
           onTimeout(time, fn) {
-            fn(`用时${time}s,超过5s`);
+            fn(`用时${time}s,超过${this.touchDeadline}s`);
           }
         }
       },
@@ -248,13 +248,15 @@ export default {
         let y = (e.clientY || e.touches[0].clientY);
         this.currentX = x - this.pointLeft - this.inView.left;
         const { left, top, width, height } = this.$refs.wrap.getBoundingClientRect();
-        if (x <= left || x >= Math.floor(left + width) || y <= top || y >= Math.floor(top + height)) {
-          this.leaveBlock(e);
-        }
         if (!this.isYMove) {
           if (y !== this.startY) {
             this.isYMove = true;
           }
+        }
+        if (x <= left || x >= Math.floor(left + width) || y <= top || y >= Math.floor(top + height)) {
+          console.log(e)
+          this.leaveBlock(e);
+          console.log(e, 2)
         }
       }
     },
@@ -277,7 +279,7 @@ export default {
       if (this.isYMove) {
         if (this.barMove + this.config.deviation >= this.blockMove && this.barMove - this.config.deviation <= this.blockMove) {
           const time = ((this.endTime - this.startTime) / 1000).toFixed(2);
-          if (time > 5) {
+          if (time > this.config.touchDeadline) {
             this.config.onTimeout(time, this.showMsg);
             this.verifyRetry(e);
             if (this.errCount >= 2) {

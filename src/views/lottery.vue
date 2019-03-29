@@ -120,8 +120,9 @@ export default {
       return this.$axios.get('http://localhost:3000/getstopnum').then(res => {
         this.stopIndex = res.data.num;
       }, () => {
-        this.stop();
-        this.$toast('服务器繁忙，请稍后再来', { svg: '#icon-waring' });
+        // this.stop();
+        // this.$toast('服务器繁忙，请稍后再来', { svg: '#icon-waring' });
+        this.stopIndex = 3;
       });
     },
     /**
