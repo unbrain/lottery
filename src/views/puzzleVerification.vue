@@ -3,6 +3,7 @@
     :class="$style.contain"
     @mousemove="moveBlock"
     @mouseup="leaveBlock"
+    @touchstart.prevent
   >
     <div
       :class="$style.wrap"
@@ -124,6 +125,7 @@ export default {
       thrCtx: '',
       fouCtx: '',
       isMouseDown: false,
+      isMouseMove: false,
       moveStartX: 0,
       currentX: 0,
       blockX: 0,
@@ -158,12 +160,16 @@ export default {
     }
   },
   methods: {
+    getBoundingClientRect(element) {
+      const { top, right, bottom, left, width, height, x, y } = element.getBoundingClientRect();
+      return { top, right, bottom, left, width, height, x, y }
+    },
     init() {
       this.ctx = this.$refs.canvasFir.getContext('2d');
       this.twoCtx = this.$refs.canvasSec.getContext('2d');
       this.thrCtx = this.$refs.canvasThr.getContext('2d');
       this.fouCtx = this.$refs.canvasFou.getContext('2d');
-      Object.assign(this.inView, this.$refs.canvasFir.getBoundingClientRect().toJSON());
+      Object.assign(this.inView, this.getBoundingClientRect(this.$refs.canvasFir));
       this.puzzle.l = this.inView.width / 8;
       this.puzzle.r = this.inView.width / 40;
       this.$refs.block.style.width = this.puzzle.l + 2 * this.puzzle.r + 'px';
@@ -239,29 +245,28 @@ export default {
       this.isMouseDown = true;
       this.isYMove = false;
       this.pointLeft = x - this.$refs.block.getBoundingClientRect().left;
-      this.moveStartX = x - this.pointLeft - this.inView.left;
+      // this.moveStartX = x - this.pointLeft - this.inView.left;
       this.currentX = x - this.pointLeft - this.inView.left;
     },
     moveBlock(e) {
       if (this.isMouseDown) {
+        this.isMouseMove = true;
         let x = (e.clientX || e.touches[0].clientX);
         let y = (e.clientY || e.touches[0].clientY);
         this.currentX = x - this.pointLeft - this.inView.left;
-        const { left, top, width, height } = this.$refs.wrap.getBoundingClientRect();
+        const { left, top, width, height } = this.getBoundingClientRect(this.$refs.wrap);
         if (!this.isYMove) {
           if (y !== this.startY) {
             this.isYMove = true;
           }
         }
         if (x <= left || x >= Math.floor(left + width) || y <= top || y >= Math.floor(top + height)) {
-          console.log(e)
           this.leaveBlock(e);
-          console.log(e, 2)
         }
       }
     },
     leaveBlock(e) {
-      if (this.isMouseDown) {
+      if (this.isMouseDown && this.isMouseMove) {
         this.endTime = new Date();
         this.isMouseDown = false;
         this.barMove = (e.clientX || e.changedTouches[0].clientX) - this.moveStartX - this.pointLeft - this.inView.left;
